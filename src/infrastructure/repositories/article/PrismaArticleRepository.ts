@@ -1,15 +1,22 @@
-import { Article } from '@domain/entities/articles/articleEntities';
-import type { ArticleRepository } from '@domain/repositories/article/ArticleRepository';
-import { Prisma, type PrismaClient } from '@infrastructure/database/prismaClient';
+import { Article } from "@domain/entities/articles/articleEntities";
+import type { ArticleRepository } from "@domain/repositories/article/ArticleRepository";
+import {
+  Prisma,
+  type PrismaClient,
+} from "@infrastructure/database/prismaClient";
 
 export class PrismaRepositoryError extends Error {
   constructor(
-    public readonly kind: 'duplicate' | 'not_found' | 'foreign_key' | 'persistence',
+    public readonly kind:
+      | "duplicate"
+      | "not_found"
+      | "foreign_key"
+      | "persistence",
     message: string,
     public readonly cause?: unknown,
   ) {
     super(message);
-    this.name = 'PrismaRepositoryError';
+    this.name = "PrismaRepositoryError";
   }
 }
 
@@ -20,26 +27,54 @@ export class PrismaArticleRepository implements ArticleRepository {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // https://www.prisma.io/docs/reference/api-reference/error-reference
       switch (error.code) {
-        case 'P2002':
-          return new PrismaRepositoryError('duplicate', 'Duplicate value constraint violated', error);
-        case 'P2003':
-          return new PrismaRepositoryError('foreign_key', 'Foreign key constraint failed', error);
-        case 'P2025':
-          return new PrismaRepositoryError('not_found', 'Record not found', error);
+        case "P2002":
+          return new PrismaRepositoryError(
+            "duplicate",
+            "Duplicate value constraint violated",
+            error,
+          );
+        case "P2003":
+          return new PrismaRepositoryError(
+            "foreign_key",
+            "Foreign key constraint failed",
+            error,
+          );
+        case "P2025":
+          return new PrismaRepositoryError(
+            "not_found",
+            "Record not found",
+            error,
+          );
         default:
-          return new PrismaRepositoryError('persistence', `Database request error (${error.code})`, error);
+          return new PrismaRepositoryError(
+            "persistence",
+            `Database request error (${error.code})`,
+            error,
+          );
       }
     }
 
     if (error instanceof Prisma.PrismaClientInitializationError) {
-      return new PrismaRepositoryError('persistence', 'Database initialization error', error);
+      return new PrismaRepositoryError(
+        "persistence",
+        "Database initialization error",
+        error,
+      );
     }
 
     if (error instanceof Prisma.PrismaClientRustPanicError) {
-      return new PrismaRepositoryError('persistence', 'Database engine panic', error);
+      return new PrismaRepositoryError(
+        "persistence",
+        "Database engine panic",
+        error,
+      );
     }
 
-    return new PrismaRepositoryError('persistence', 'Unknown database error', error);
+    return new PrismaRepositoryError(
+      "persistence",
+      "Unknown database error",
+      error,
+    );
   }
 
   // Find all articles with optional published filter
@@ -109,6 +144,14 @@ export class PrismaArticleRepository implements ArticleRepository {
       await this.prisma.article.delete({
         where: { id },
       });
+    } catch (error) {
+      throw this.mapPrismaError(error);
+    }
+  }
+
+  async deleteAll(): Promise<void> {
+    try {
+      await this.prisma.article.deleteMany({});
     } catch (error) {
       throw this.mapPrismaError(error);
     }

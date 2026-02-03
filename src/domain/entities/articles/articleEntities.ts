@@ -21,10 +21,10 @@ export class Article {
     categories?: ArticleCategory[];
   }): Article {
     if (params.price < 0) {
-      throw new Error('Price cannot be negative');
+      throw new Error("Price cannot be negative");
     }
     if (!params.title.trim()) {
-      throw new Error('Title cannot be empty');
+      throw new Error("Title cannot be empty");
     }
 
     return new Article(
@@ -53,10 +53,10 @@ export class Article {
     categories: ArticleCategory[];
   }): Article {
     if (params.price < 0) {
-      throw new Error('Price cannot be negative');
+      throw new Error("Price cannot be negative");
     }
     if (!params.title.trim()) {
-      throw new Error('Title cannot be empty');
+      throw new Error("Title cannot be empty");
     }
 
     return new Article(
@@ -75,7 +75,7 @@ export class Article {
 
   renameArticle(params: { title: string; existingArticle: Article }): Article {
     if (!params.title.trim()) {
-      throw new Error('Title cannot be empty');
+      throw new Error("Title cannot be empty");
     }
     return new Article(
       params.existingArticle.id,
@@ -92,7 +92,7 @@ export class Article {
   }
   changePrice(params: { price: number; existingArticle: Article }): Article {
     if (params.price < 0) {
-      throw new Error('Price cannot be negative');
+      throw new Error("Price cannot be negative");
     }
     return new Article(
       params.existingArticle.id,
@@ -107,7 +107,10 @@ export class Article {
       params.existingArticle.categories,
     );
   }
-  changeDescription(params: { description: string; existingArticle: Article }): Article {
+  changeDescription(params: {
+    description: string;
+    existingArticle: Article;
+  }): Article {
     return new Article(
       params.existingArticle.id,
       params.existingArticle.title,
@@ -136,6 +139,7 @@ export class Article {
       params.existingArticle.categories,
     );
   }
+
   logicalDeleteArticle(params: { existingArticle: Article }): Article {
     return new Article(
       params.existingArticle.id,

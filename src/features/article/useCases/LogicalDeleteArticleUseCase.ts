@@ -1,5 +1,5 @@
-import { Article } from '@domain/entities/articles/articleEntities';
-import type { ArticleRepository } from '@domain/repositories/article/ArticleRepository';
+import { Article } from "@domain/entities/articles/articleEntities";
+import type { ArticleRepository } from "@domain/repositories/article/ArticleRepository";
 
 export class LogicalDeleteArticleUseCase {
   constructor(private articleRepository: ArticleRepository) {}
@@ -7,10 +7,12 @@ export class LogicalDeleteArticleUseCase {
   async execute(articleId: string): Promise<void> {
     const existingArticle = await this.articleRepository.findById(articleId);
     if (!existingArticle) {
-      throw new Error('Article not found');
+      throw new Error("Article not found");
     }
 
-    const logicallyDeletedArticle = Article.logicalDeleteArticle(existingArticle);
+    const logicallyDeletedArticle = existingArticle.logicalDeleteArticle({
+      existingArticle,
+    });
     await this.articleRepository.update(logicallyDeletedArticle);
   }
 }

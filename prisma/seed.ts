@@ -34,18 +34,6 @@ const categoriesSeed = async () => {
   }
 };
 
-const userSeed = async () => {
-  const email = "johndoe@test.com";
-  return prisma.user.upsert({
-    where: { email },
-    update: {},
-    create: {
-      email,
-      username: "johndoe",
-    },
-  });
-};
-
 const articleSeed = async (userId: string) => {
   const categoryNames = [
     "Electronics",
@@ -369,7 +357,7 @@ const articleSeed = async (userId: string) => {
         description: article.description,
         price: article.price,
         isPublished: article.isPublished,
-        userId,
+        user: userId,
         categories: {
           deleteMany: {},
           create: categoryLinks,
@@ -381,7 +369,7 @@ const articleSeed = async (userId: string) => {
         description: article.description,
         price: article.price,
         isPublished: article.isPublished,
-        userId,
+        user: userId,
         categories: {
           create: categoryLinks,
         },
@@ -401,8 +389,8 @@ async function main() {
       /** data for your development */
       await categoriesSeed();
       {
-        const user = await userSeed();
-        await articleSeed(user.id);
+        // Zitadel admin id
+        await articleSeed("357102073475039235");
       }
       break;
     case "test":

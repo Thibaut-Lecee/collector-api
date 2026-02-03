@@ -114,6 +114,34 @@ export default async function articleController(fastify: FastifyInstance) {
     },
   });
 
+  fastify.delete("/api/v1/articles/clearAll", {
+    schema: {
+      summary: "Clear all articles (for testing purposes)",
+      tags: ["articles"],
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            message: { type: "string" },
+          },
+        },
+        500: { $ref: "ErrorResponse#" },
+      },
+    },
+    handler: async (request, reply) => {
+      const { logger, repositories } = deps;
+      try {
+        await repositories.articleRepository.deleteAll();
+        return reply.status(200).send({ message: "All articles cleared" });
+      } catch (error) {
+        logger.error({ error }, "Error clearing articles");
+        return reply
+          .status(500)
+          .send({ message: "Internal server error", statusCode: 500 });
+      }
+    },
+  });
+
   fastify.route({
     method: "GET",
     url: "/api/v1/articles/findAll",

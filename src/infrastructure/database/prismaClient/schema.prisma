@@ -30,6 +30,12 @@ model Visit {
   @@map("visits")
 }
 
+enum articleStatusEnum {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
 model Article {
   id          String              @id @default(uuid())
   title       String
@@ -37,9 +43,10 @@ model Article {
   price       Float
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
+  // Intéressant de changer le isPublished en status pour gérer plusieurs états
+  // status      articleStatusEnum   @default(PUBLISHED)
   isPublished Boolean             @default(false)
-  userId      String
-  user        User                @relation(fields: [userId], references: [id])
+  user        String              @map("userId")
   images      ArticleImages[]
   categories  ArticleCategories[]
 
@@ -71,13 +78,4 @@ model category {
   name String @unique
 
   @@map("categories")
-}
-
-model User {
-  id       String    @id @default(uuid())
-  username String?   @unique
-  email    String    @unique
-  articles Article[]
-
-  @@map("users")
 }

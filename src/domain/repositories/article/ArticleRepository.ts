@@ -1,4 +1,4 @@
-import type { Article } from '@domain/entities/articles/articleEntities';
+import type { Article } from "@domain/entities/articles/articleEntities";
 
 export interface ArticleRepository {
   create(article: Article): Promise<void>;
@@ -7,4 +7,5 @@ export interface ArticleRepository {
   findAll(): Promise<Article[]>;
   update(article: Article): Promise<void>;
   delete(id: string): Promise<void>;
+  deleteAll(): Promise<void>;
 }
