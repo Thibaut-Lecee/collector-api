@@ -47,7 +47,7 @@ describe("Articles API", () => {
         price: 149.99,
         isPublished: true,
         categories: ["Electronics"],
-        userId: "22a9a6d4-830f-482c-94be-983d4a03af54",
+        userId: "357102073475039235", // UserId admin zitadel mais peut être changé selon les besoins
       };
 
       const response = await client.post(apiURL).send(newArticle);

@@ -12,8 +12,7 @@ const createArticleBodySchema = z.object({
   title: z.string().min(1).max(255),
   description: z.string().min(1).max(5000),
   price: z.number().min(0),
-  userId: z.uuid(),
-  images: z.array(z.url()).optional(),
+  userId: z.string(),
   categories: z.array(z.string()).optional(),
 });
 
@@ -34,8 +33,7 @@ export default async function articleController(fastify: FastifyInstance) {
           title: { type: "string", minLength: 1, maxLength: 255 },
           description: { type: "string", minLength: 1, maxLength: 5000 },
           price: { type: "number", minimum: 0 },
-          userId: { type: "string", format: "uuid" },
-          images: { type: "array", items: { type: "string", format: "uri" } },
+          userId: { type: "string" },
           categories: { type: "array", items: { type: "string" } },
         },
       },
@@ -51,7 +49,6 @@ export default async function articleController(fastify: FastifyInstance) {
             createdAt: { type: "string" },
             updatedAt: { type: ["string", "null"] },
             isPublished: { type: "boolean" },
-            images: { type: "array", items: { type: "object" } },
             categories: { type: "array", items: { type: "object" } },
           },
         },
