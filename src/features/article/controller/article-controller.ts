@@ -148,7 +148,6 @@ export default async function articleController(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { repositories, logger } = deps;
-
       try {
         const useCase = new FindAllArticleUseCase(
           repositories.articleRepository,
