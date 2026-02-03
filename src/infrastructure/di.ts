@@ -1,7 +1,8 @@
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '@prisma/client';
 import { makeConfig } from './config';
+import { PrismaClient } from './database/prismaClient';
 import { makeLogger } from './logger';
+import { PrismaArticleRepository } from './repositories/article/PrismaArticleRepository';
 import { makeShortenedUrlsRepository } from './repositories/shortened-urls-repository';
 import { makeVisitsRepository } from './repositories/visits-repository';
 
@@ -24,6 +25,7 @@ export async function makeDependencies() {
 
   const shortenedUrlsRepository = makeShortenedUrlsRepository(db);
   const visitsRepository = makeVisitsRepository(db);
+  const articleRepository = new PrismaArticleRepository(db);
 
   return {
     config,
@@ -32,6 +34,7 @@ export async function makeDependencies() {
     repositories: {
       shortenedUrlsRepository,
       visitsRepository,
+      articleRepository,
     },
     dispose: async () => {
       await db.$disconnect();

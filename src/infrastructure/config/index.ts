@@ -27,6 +27,9 @@ export function makeConfig() {
     logLevel: parsedEnv.LOG_LEVEL,
     loggerEnabled: parsedEnv.NODE_ENV !== 'test',
     port: parsedEnv.PORT,
+    zitadelIssuer: process.env.ZITADEL_ISSUER || 'http://localhost:8080',
+    zitadelClientId: process.env.ZITADEL_CLIENT_ID || '',
+    zitadelClientSecret: process.env.ZITADEL_CLIENT_SECRET || '',
   };
 }
 

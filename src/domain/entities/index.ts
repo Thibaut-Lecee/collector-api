@@ -1,2 +1,2 @@
-export * from './shortened-url';
-export * from './visit';
+export * from './url/shortened-url';
+export * from './visit/visit';

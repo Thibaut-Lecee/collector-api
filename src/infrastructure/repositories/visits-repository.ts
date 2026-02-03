@@ -1,6 +1,6 @@
 import { Visit } from '@domain/entities';
 import type { VisitsRepository } from '@domain/repositories';
-import type { PrismaClient, Visit as VisitModel } from '@prisma/client';
+import type { PrismaClient, Visit as VisitModel } from '@infrastructure/database/prismaClient';
 
 export function makeVisitsRepository(db: PrismaClient): VisitsRepository {
   return {

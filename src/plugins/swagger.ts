@@ -11,6 +11,15 @@ async function swaggerGeneratorPlugin(fastify: FastifyInstance) {
         description: 'API documentation',
         version: '0.1.0',
       },
+      securityDefinitions: {
+        Bearer: {
+          type: 'apiKey',
+          name: 'Authorization',
+          in: 'header',
+          description: 'Enter your bearer token in the format **Bearer &lt;token>**',
+        },
+      },
+      security: [{ Bearer: [] }],
       schemes: ['http', 'https'],
       consumes: ['application/json'],
       produces: ['application/json', 'text/html'],

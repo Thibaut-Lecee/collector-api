@@ -1,2 +1,2 @@
-export * from './shortened-urls-repository';
-export * from './visits-repository';
+export * from './urls/shortened-urls-repository';
+export * from './visits/visits-repository';

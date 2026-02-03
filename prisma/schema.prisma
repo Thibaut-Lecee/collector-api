@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/infrastructure/database/prismaClient"
 }
 
 datasource db {
@@ -27,4 +28,56 @@ model Visit {
 
   @@index([shortenedUrlId, visitedAt])
   @@map("visits")
+}
+
+model Article {
+  id          String              @id @default(uuid())
+  title       String
+  description String
+  price       Float
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  isPublished Boolean             @default(false)
+  userId      String
+  user        User                @relation(fields: [userId], references: [id])
+  images      ArticleImages[]
+  categories  ArticleCategories[]
+
+  @@map("articles")
+}
+
+model ArticleCategories {
+  id         String @id @default(uuid())
+  articleId  String
+  categoryId String
+
+  article Article @relation(fields: [articleId], references: [id])
+
+  @@map("article_categories")
+}
+
+model ArticleImages {
+  id        String @id @default(uuid())
+  articleId String
+  imageUrl  String
+
+  article Article @relation(fields: [articleId], references: [id])
+
+  @@map("article_images")
+}
+
+model category {
+  id   String @id @default(uuid())
+  name String @unique
+
+  @@map("categories")
+}
+
+model User {
+  id       String    @id @default(uuid())
+  username String?   @unique
+  email    String    @unique
+  articles Article[]
+
+  @@map("users")
 }

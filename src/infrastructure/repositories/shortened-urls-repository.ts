@@ -1,6 +1,10 @@
 import { ShortenedUrl } from '@domain/entities';
 import type { ShortenedUrlsRepository } from '@domain/repositories';
-import { Prisma, type PrismaClient, type ShortenedUrl as ShortenedUrlModel } from '@prisma/client';
+import {
+  Prisma,
+  type PrismaClient,
+  type ShortenedUrl as ShortenedUrlModel,
+} from '@infrastructure/database/prismaClient';
 
 export function makeShortenedUrlsRepository(db: PrismaClient): ShortenedUrlsRepository {
   return {
