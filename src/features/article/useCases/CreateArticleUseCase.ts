@@ -1,9 +1,6 @@
-import {
-  Article,
-  type ArticleDto,
-} from "@domain/entities/articles/articleEntities";
-import type { ArticleRepository } from "@domain/repositories/article/ArticleRepository";
-import { v4 as uuidv4 } from "uuid";
+import { Article, type ArticleDto } from '@domain/entities/articles/articleEntities';
+import type { ArticleRepository } from '@domain/repositories/article/ArticleRepository';
+import { v4 as uuidv4 } from 'uuid';
 
 type CreateArticleParams = {
   title: string;
@@ -29,11 +26,6 @@ export class CreateArticleUseCase {
     });
 
     await this.articleRepository.create(article);
-    return {
-      id: article.id,
-      title: article.title,
-      price: article.price,
-      userId: article.user,
-    };
+    return Article.toDto(article);
   }
 }

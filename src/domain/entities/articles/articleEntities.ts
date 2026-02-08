@@ -4,7 +4,7 @@ export class Article {
     public readonly title: string,
     public readonly description: string,
     public readonly price: number,
-    public readonly user: string,
+    public readonly userId: string,
     public readonly createdAt: Date,
     public readonly updatedAt: Date | null,
     public readonly isPublished: boolean,
@@ -21,10 +21,10 @@ export class Article {
     categories?: ArticleCategory[];
   }): Article {
     if (params.price < 0) {
-      throw new Error("Price cannot be negative");
+      throw new Error('Price cannot be negative');
     }
     if (!params.title.trim()) {
-      throw new Error("Title cannot be empty");
+      throw new Error('Title cannot be empty');
     }
 
     return new Article(
@@ -53,10 +53,10 @@ export class Article {
     categories: ArticleCategory[];
   }): Article {
     if (params.price < 0) {
-      throw new Error("Price cannot be negative");
+      throw new Error('Price cannot be negative');
     }
     if (!params.title.trim()) {
-      throw new Error("Title cannot be empty");
+      throw new Error('Title cannot be empty');
     }
 
     return new Article(
@@ -75,14 +75,14 @@ export class Article {
 
   renameArticle(params: { title: string; existingArticle: Article }): Article {
     if (!params.title.trim()) {
-      throw new Error("Title cannot be empty");
+      throw new Error('Title cannot be empty');
     }
     return new Article(
       params.existingArticle.id,
       params.title,
       params.existingArticle.description,
       params.existingArticle.price,
-      params.existingArticle.user,
+      params.existingArticle.userId,
       params.existingArticle.createdAt,
       new Date(),
       params.existingArticle.isPublished,
@@ -92,14 +92,14 @@ export class Article {
   }
   changePrice(params: { price: number; existingArticle: Article }): Article {
     if (params.price < 0) {
-      throw new Error("Price cannot be negative");
+      throw new Error('Price cannot be negative');
     }
     return new Article(
       params.existingArticle.id,
       params.existingArticle.title,
       params.existingArticle.description,
       params.price,
-      params.existingArticle.user,
+      params.existingArticle.userId,
       params.existingArticle.createdAt,
       new Date(),
       params.existingArticle.isPublished,
@@ -107,16 +107,13 @@ export class Article {
       params.existingArticle.categories,
     );
   }
-  changeDescription(params: {
-    description: string;
-    existingArticle: Article;
-  }): Article {
+  changeDescription(params: { description: string; existingArticle: Article }): Article {
     return new Article(
       params.existingArticle.id,
       params.existingArticle.title,
       params.description,
       params.existingArticle.price,
-      params.existingArticle.user,
+      params.existingArticle.userId,
       params.existingArticle.createdAt,
       new Date(),
       params.existingArticle.isPublished,
@@ -131,7 +128,7 @@ export class Article {
       params.existingArticle.title,
       params.existingArticle.description,
       params.existingArticle.price,
-      params.existingArticle.user,
+      params.existingArticle.userId,
       params.existingArticle.createdAt,
       new Date(),
       true,
@@ -146,7 +143,7 @@ export class Article {
       params.existingArticle.title,
       params.existingArticle.description,
       params.existingArticle.price,
-      params.existingArticle.user,
+      params.existingArticle.userId,
       params.existingArticle.createdAt,
       new Date(),
       false,
@@ -160,7 +157,7 @@ export class Article {
       title: article.title,
       description: article.description,
       price: article.price,
-      userId: article.user,
+      userId: article.userId,
       createdAt: article.createdAt,
       updatedAt: article.updatedAt,
       isPublished: article.isPublished,

@@ -5,8 +5,17 @@ import * as jose from 'jose';
 const authPlugin = async (fastify: FastifyInstance) => {
   const { config } = fastify.dependencies;
   const issuer: string = config.zitadelIssuer;
+  const internalIssuer: string = config.zitadelInternalIssuer ?? issuer;
   const audience: string = config.zitadelClientId;
-  const JWKS = jose.createRemoteJWKSet(new URL(`${config.zitadelIssuer}/oauth/v2/keys`));
+
+  // ZITADEL selects the instance by Host header. When calling it from inside Docker/K8s using
+  // a service name (e.g. http://zitadel:8080), we must still send the public Host (e.g. localhost:8080).
+  const publicHost = new URL(issuer).host;
+  const JWKS = jose.createRemoteJWKSet(new URL(`${internalIssuer}/oauth/v2/keys`), {
+    headers: {
+      host: publicHost,
+    },
+  });
 
   const authenticate = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
     // On récupère le token d'authentification depuis les headers
@@ -22,7 +31,7 @@ const authPlugin = async (fastify: FastifyInstance) => {
     try {
       const { payload } = await jose.jwtVerify(token, JWKS, {
         audience: audience,
-        issuer: issuer,
+        issuer,
       });
       // On attache le payload du token à la requête pour une utilisation ultérieure
       request.user = payload;

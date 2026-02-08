@@ -1,7 +1,7 @@
 {
-  "name": "clean-architecture",
-  "description": "A Node template that follows the Clean Architecture principles and encourages established practices.",
-  "author": "Jamie Livingstone",
+  "name": "collector-api",
+  "description": "Collector API (Fastify + Prisma).",
+  "author": "MAALSI",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -31,9 +31,7 @@
     "fastify": "^5.6.2",
     "fastify-plugin": "^5.1.0",
     "jose": "^6.1.3",
-    "nanoid": "^5.1.6",
     "pino": "^10.1.0",
-    "ts-pattern": "^5.9.0",
     "uuid": "^13.0.0",
     "zod": "^4.3.5"
   },

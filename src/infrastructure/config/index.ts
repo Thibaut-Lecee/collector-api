@@ -7,7 +7,9 @@ export function makeConfig() {
       .transform((val) => val.split(',').map((origin) => origin.trim()))
       .pipe(z.array(z.url()))
       .optional(),
+    ADMIN_ROLE_NAME: z.string().min(1).optional(),
     DATABASE_URL: z.string(),
+    GRAFANA_URL: z.string().url().optional(),
     NODE_ENV: z.enum(['development', 'production', 'test']),
     LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']),
     PORT: z
@@ -20,6 +22,9 @@ export function makeConfig() {
 
   const parsedEnv = schema.parse(process.env);
 
+  const zitadelIssuer = process.env.ZITADEL_ISSUER || 'http://localhost:8080';
+  const zitadelInternalIssuer = process.env.ZITADEL_INTERNAL_ISSUER || zitadelIssuer;
+
   return {
     corsOrigin: parsedEnv.CORS_ORIGIN,
     DATABASE_URL: parsedEnv.DATABASE_URL,
@@ -27,7 +32,10 @@ export function makeConfig() {
     logLevel: parsedEnv.LOG_LEVEL,
     loggerEnabled: parsedEnv.NODE_ENV !== 'test',
     port: parsedEnv.PORT,
-    zitadelIssuer: process.env.ZITADEL_ISSUER || 'http://localhost:8080',
+    adminRoleName: parsedEnv.ADMIN_ROLE_NAME ?? 'admin',
+    grafanaUrl: parsedEnv.GRAFANA_URL,
+    zitadelIssuer,
+    zitadelInternalIssuer,
     zitadelClientId: process.env.ZITADEL_CLIENT_ID || '',
     zitadelClientSecret: process.env.ZITADEL_CLIENT_SECRET || '',
   };

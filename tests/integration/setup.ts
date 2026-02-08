@@ -1,17 +1,14 @@
-import { execSync } from "node:child_process";
-import process from "node:process";
-import dotenv from "dotenv";
-import { Client } from "pg";
+import process from 'node:process';
+import dotenv from 'dotenv';
+import { Client } from 'pg';
 
 dotenv.config();
 
-const connectionString =
-  process.env.DATABASE_URL ||
-  "postgresql://postgres:password@localhost:5432/collector_test";
+const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/collector_test';
 
 export async function setup() {
   process.env.DATABASE_URL = connectionString;
-  // execSync("npx prisma migrate deploy --config prisma/prisma.config.ts", {
+  // execSync("npx prisma migrate deploy --config prisma.config.ts", {
   //   stdio: "ignore",
   //   env: { ...process.env, DATABASE_URL: connectionString },
   // });

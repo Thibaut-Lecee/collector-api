@@ -19,7 +19,7 @@ RUN npm ci --include=dev --ignore-scripts
 COPY . .
 
 # Generate Prisma client (needs dotenv from devDeps)
-RUN npx prisma generate --config prisma/prisma.config.ts
+RUN npx prisma generate --config prisma.config.ts
 
 # Build TypeScript
 RUN npm run build
