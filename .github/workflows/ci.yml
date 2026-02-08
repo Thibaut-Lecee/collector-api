@@ -15,6 +15,7 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/collector_ci
       DATABASE_URL_DOCKER: postgresql://postgres:postgres@db:5432/collector_ci
       DOTENV_CONFIG_QUIET: true
+      CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
     steps:
       - name: Checkout repository
@@ -57,10 +58,10 @@ jobs:
         run: docker compose down -v
 
       - name: Upload coverage to Codacy
-        if: secrets.CODACY_PROJECT_TOKEN != ''
+        if: env.CODACY_PROJECT_TOKEN != ''
         uses: codacy/codacy-coverage-reporter-action@v1
         with:
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          project-token: ${{ env.CODACY_PROJECT_TOKEN }}
           coverage-reports: coverage/lcov.info
 
       - name: Build Docker images
