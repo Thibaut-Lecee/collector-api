@@ -25,4 +25,3 @@ describe('Metrics Endpoint', () => {
     });
   });
 });
-

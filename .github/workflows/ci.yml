@@ -3,27 +3,36 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
-  build:
+  ci:
     runs-on: ubuntu-latest
+    env:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: collector_ci
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/collector_ci
+      DATABASE_URL_DOCKER: postgresql://postgres:postgres@db:5432/collector_ci
+      DOTENV_CONFIG_QUIET: true
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
+          node-version-file: ".nvmrc"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
 
       - name: Generate Prisma client
-        run: npx prisma generate --config prisma/prisma.config.ts
+        run: npx prisma generate --config prisma.config.ts
 
       - name: Lint
         run: npm run lint
@@ -31,18 +40,78 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Create .env file
-        run: cp .env.example .env
-
-      - name: Start container
-        run: docker compose up -d
+      - name: Start database
+        run: docker compose up -d db
 
       - name: Wait for database to be ready
-        run: docker compose exec -T db sh -c 'until pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-app_db}; do sleep 1; done'
+        run: docker compose exec -T db sh -c 'until pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do sleep 1; done'
+
+      - name: Run migrations
+        run: npx prisma migrate deploy --config prisma.config.ts
 
       - name: Test
         run: npm test -- --coverage
 
-      - name: Stop functional tests container
+      - name: Stop test containers
         if: always()
-        run: docker compose down
+        run: docker compose down -v
+
+      - name: Upload coverage to Codacy
+        if: secrets.CODACY_PROJECT_TOKEN != ''
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: coverage/lcov.info
+
+      - name: Build Docker images
+        run: |
+          docker build --target runner -t collector-api:ci .
+          docker build --target migrate -t collector-api-migrate:ci .
+
+      - name: Trivy scan (collector-api)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: collector-api:ci
+          scan-type: image
+          format: table
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "0"
+
+      - name: Trivy scan (collector-api-migrate)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: collector-api-migrate:ci
+          scan-type: image
+          format: table
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "0"
+
+      - name: Deploy (docker compose)
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL_DOCKER }}
+          API_IMAGE: collector-api:ci
+          MIGRATE_IMAGE: collector-api-migrate:ci
+        run: |
+          docker compose -f docker-compose.deploy.yml up -d db
+          docker compose -f docker-compose.deploy.yml run --rm migrate
+          docker compose -f docker-compose.deploy.yml up -d api
+
+          for i in {1..30}; do
+            if curl -fsS http://localhost:3000/ready >/dev/null; then
+              echo "Service is ready"
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "Service did not become ready"
+          docker compose -f docker-compose.deploy.yml logs api db
+          exit 1
+
+      - name: Stop deploy containers
+        if: always()
+        run: docker compose -f docker-compose.deploy.yml down -v

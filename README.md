@@ -18,7 +18,29 @@ npx --prefix collector-api prisma generate --config collector-api/prisma.config.
 npm -C collector-api run dev
 ```
 
-Swagger (dev uniquement) : `http://localhost:3000/api-docs`
+Swagger (dev uniquement) : `http://localhost:<PORT>/api-docs` (par défaut `http://localhost:3001/api-docs`)
+
+## Déploiement (Docker)
+
+Image runtime (API):
+
+```bash
+cd collector-api
+docker build -t collector-api:latest .
+docker run --rm -p 3001:3001 \
+  -e DATABASE_URL="postgresql://postgres:postgres@host.docker.internal:5432/collector" \
+  -e NODE_ENV=production -e LOG_LEVEL=info -e PORT=3001 \
+  collector-api:latest
+```
+
+Migrations Prisma (image dédiée):
+
+```bash
+cd collector-api
+docker build --target migrate -t collector-api-migrate:latest .
+docker run --rm -e DATABASE_URL="postgresql://postgres:postgres@host.docker.internal:5432/collector" \
+  collector-api-migrate:latest
+```
 
 ## Scripts utiles
 

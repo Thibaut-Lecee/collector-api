@@ -12,9 +12,7 @@ type HistogramState = {
   sum: number;
 };
 
-const DEFAULT_BUCKETS_SECONDS = [
-  0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10,
-];
+const DEFAULT_BUCKETS_SECONDS = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10];
 
 const START_TIME_SECONDS = Math.floor(Date.now() / 1000);
 const START_TIME_KEY = Symbol('metrics_start_time');
@@ -81,9 +79,7 @@ function renderHistogram(
   }
 
   cumulative += state.countsPerBucket[buckets.length] ?? 0;
-  lines.push(
-    `${metricName}_bucket${formatLabels({ ...labels, le: '+Inf' })} ${cumulative}`,
-  );
+  lines.push(`${metricName}_bucket${formatLabels({ ...labels, le: '+Inf' })} ${cumulative}`);
   lines.push(`${metricName}_sum${formatLabels(labels)} ${state.sum}`);
   lines.push(`${metricName}_count${formatLabels(labels)} ${cumulative}`);
 
@@ -132,8 +128,7 @@ async function metricsPlugin(fastify: FastifyInstance) {
     url: '/metrics',
     schema: {
       summary: 'Prometheus metrics',
-      description:
-        'Exposes Prometheus metrics in the text exposition format. Intended for scraping by Prometheus.',
+      description: 'Exposes Prometheus metrics in the text exposition format. Intended for scraping by Prometheus.',
       tags: ['observability'],
     },
     handler(_request: FastifyRequest, reply: FastifyReply) {
