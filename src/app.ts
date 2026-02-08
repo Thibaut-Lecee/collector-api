@@ -7,6 +7,7 @@ import dependencyInjectionPlugin from './plugins/dependency-injection';
 import errorHandlerPlugin from './plugins/error-handler';
 import grafanaProxyPlugin from './plugins/grafana-proxy';
 import healthPlugin from './plugins/health';
+import metricsPlugin from './plugins/metrics';
 import auth from './plugins/http/auth';
 import rateLimitPlugin from './plugins/rate-limit';
 import swaggerPlugin from './plugins/swagger';
@@ -24,6 +25,7 @@ export async function app(fastify: FastifyInstance, dependencies: Dependencies) 
   // CSP is not useful for JSON APIs and breaks proxied HTML apps like Grafana (inline scripts).
   await fastify.register(Helmet, { global: true, contentSecurityPolicy: false });
   await fastify.register(Cors, { origin: corsOrigin });
+  await fastify.register(metricsPlugin);
 
   if (!isProduction) {
     await fastify.register(swaggerPlugin);
