@@ -11,13 +11,8 @@ export function makeConfig() {
     DATABASE_URL: z.string(),
     GRAFANA_URL: z.string().url().optional(),
     NODE_ENV: z.enum(['development', 'production', 'test']),
-    LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']),
-    PORT: z
-      .string()
-      .transform((val) => Number.parseInt(val, 10))
-      .refine((val) => val >= 1 && val <= 65535, {
-        message: 'Port must be between 1 and 65535',
-      }),
+    LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).catch('info'),
+    PORT: z.coerce.number().int().min(1).max(65535).catch(3000),
   });
 
   const parsedEnv = schema.parse(process.env);
