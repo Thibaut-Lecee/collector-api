@@ -32,7 +32,10 @@ export async function app(fastify: FastifyInstance, dependencies: Dependencies) 
   }
 
   await fastify.register(auth);
-  await fastify.register(rateLimitPlugin);
+  await fastify.register(rateLimitPlugin, {
+    maxRequestsPerIp: config.rateLimitMax,
+    timeWindow: config.rateLimitWindow,
+  });
   await fastify.register(grafanaProxyPlugin);
   await fastify.register(errorHandlerPlugin);
   await fastify.register(healthPlugin);

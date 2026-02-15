@@ -44,6 +44,18 @@ function buildErrorResponse(error: Error, logger: FastifyInstance['log']): Error
     return { message: 'Not found', statusCode: 404 };
   }
 
+  const statusCode =
+    typeof fastifyError.statusCode === 'number'
+      ? fastifyError.statusCode
+      : typeof (fastifyError as unknown as { status?: unknown }).status === 'number'
+        ? (fastifyError as unknown as { status: number }).status
+        : undefined;
+
+  // Preserve non-500 HTTP status codes emitted by other plugins (e.g. rate limiting).
+  if (typeof statusCode === 'number' && statusCode >= 400 && statusCode < 500) {
+    return { message: fastifyError.message || 'Request failed', statusCode };
+  }
+
   logger.error({ error }, 'Unhandled error');
   return { message: 'Internal server error', statusCode: 500 };
 }
