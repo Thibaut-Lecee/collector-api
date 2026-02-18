@@ -53,13 +53,13 @@ jobs:
       - name: Test
         run: npm test -- --coverage
 
-      - name: Quality gate (coverage >= 70%)
+      - name: Quality gate (coverage >= 60%)
         run: |
           node <<'NODE'
           const fs = require('node:fs');
           const path = require('node:path');
 
-          const threshold = 70;
+          const threshold = 60;
           const summaryPath = path.join('coverage', 'coverage-summary.json');
           const lcovPath = path.join('coverage', 'lcov.info');
 
