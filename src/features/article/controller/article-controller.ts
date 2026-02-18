@@ -231,7 +231,7 @@ export default async function articleController(fastify: FastifyInstance) {
     },
   });
 
-  fastify.route<{ Querystring: { page: number; limit: number } }>({
+  fastify.route<{ Querystring: { page: number; limit: number; search?: string } }>({
     method: 'GET',
     url: '/api/v1/articles/getPaginated',
     schema: {
@@ -242,29 +242,37 @@ export default async function articleController(fastify: FastifyInstance) {
         properties: {
           page: { type: 'number', minimum: 1, default: 1 },
           limit: { type: 'number', minimum: 1, maximum: 100, default: 10 },
+          search: { type: 'string' },
         },
       },
       response: {
         200: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              id: { type: 'string' },
-              title: { type: 'string' },
-              description: { type: 'string' },
-              price: { type: 'number' },
-              userId: { type: 'string' },
-              createdAt: { type: 'string' },
-              updatedAt: { type: ['string', 'null'] },
-              isPublished: { type: 'boolean' },
-              images: { type: 'array', items: { type: 'object' } },
-              categories: { type: 'array', items: { type: 'object' } },
+          type: 'object',
+          required: ['items', 'page', 'limit', 'total', 'totalPages'],
+          properties: {
+            items: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  title: { type: 'string' },
+                  description: { type: 'string' },
+                  price: { type: 'number' },
+                  userId: { type: 'string' },
+                  createdAt: { type: 'string' },
+                  updatedAt: { type: ['string', 'null'] },
+                  isPublished: { type: 'boolean' },
+                  images: { type: 'array', items: { type: 'object' } },
+                  categories: { type: 'array', items: { type: 'object' } },
+                },
+              },
             },
+            page: { type: 'number' },
+            limit: { type: 'number' },
+            total: { type: 'number' },
+            totalPages: { type: 'number' },
           },
-        },
-        204: {
-          description: 'No articles found',
         },
         500: { $ref: 'ErrorResponse#' },
       },
@@ -273,14 +281,12 @@ export default async function articleController(fastify: FastifyInstance) {
       const { repositories, logger } = deps;
       const page = Number(request.query.page) || 1;
       const limit = Number(request.query.limit) || 10;
+      const search = request.query.search;
 
       try {
         const useCase = new PaginatedArticleUseCase(repositories.articleRepository);
-        const paginatedArticles = await useCase.execute(page, limit);
+        const paginatedArticles = await useCase.execute(page, limit, search);
 
-        if (paginatedArticles.length === 0 || !paginatedArticles) {
-          return reply.status(204).send();
-        }
         return reply.status(200).send(paginatedArticles);
       } catch (error) {
         logger.error({ error }, 'Error fetching paginated articles');

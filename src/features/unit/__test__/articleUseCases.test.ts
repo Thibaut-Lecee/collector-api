@@ -169,10 +169,18 @@ describe('Article use cases', () => {
     const useCase = new PaginatedArticleUseCase(repository);
     const articles = [baseArticle()];
     repository.findByPagination.mockResolvedValue(articles);
+    repository.countPublished.mockResolvedValue(12);
 
     const result = await useCase.execute(2, 5);
 
-    expect(repository.findByPagination).toHaveBeenCalledWith(2, 5);
-    expect(result).toEqual(articles);
+    expect(repository.findByPagination).toHaveBeenCalledWith(2, 5, undefined);
+    expect(repository.countPublished).toHaveBeenCalledWith(undefined);
+    expect(result).toEqual({
+      items: articles,
+      page: 2,
+      limit: 5,
+      total: 12,
+      totalPages: 3,
+    });
   });
 });

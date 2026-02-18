@@ -16,6 +16,22 @@ export class PrismaRepositoryError extends Error {
 export class PrismaArticleRepository implements ArticleRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
+  private buildPublishedWhere(search?: string): Prisma.ArticleWhereInput {
+    const normalizedSearch = search?.trim();
+
+    if (!normalizedSearch) {
+      return { isPublished: true };
+    }
+
+    return {
+      isPublished: true,
+      OR: [
+        { title: { contains: normalizedSearch, mode: 'insensitive' } },
+        { description: { contains: normalizedSearch, mode: 'insensitive' } },
+      ],
+    };
+  }
+
   private mapPrismaError(error: unknown): PrismaRepositoryError {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // https://www.prisma.io/docs/reference/api-reference/error-reference
@@ -64,11 +80,11 @@ export class PrismaArticleRepository implements ArticleRepository {
     );
   }
   // find all articles only published with pagination
-  async findByPagination(page: number, limit: number): Promise<Article[]> {
+  async findByPagination(page: number, limit: number, search?: string): Promise<Article[]> {
     const articles = await this.prisma.article.findMany({
       skip: (page - 1) * limit,
       take: limit,
-      where: { isPublished: true },
+      where: this.buildPublishedWhere(search),
     });
     return articles.map((record) =>
       Article.restore({
@@ -84,6 +100,12 @@ export class PrismaArticleRepository implements ArticleRepository {
         categories: [],
       }),
     );
+  }
+
+  async countPublished(search?: string): Promise<number> {
+    return this.prisma.article.count({
+      where: this.buildPublishedWhere(search),
+    });
   }
 
   async update(article: Article): Promise<void> {

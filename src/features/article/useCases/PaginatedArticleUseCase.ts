@@ -1,11 +1,31 @@
 import type { ArticleDto } from '@domain/entities/articles/articleEntities';
 import type { ArticleRepository } from '@domain/repositories/article/ArticleRepository';
 
-export class PaginatedArticleUseCase {
-  constructor(private articleRepository: ArticleRepository) {}
+export type PaginatedArticlesDto = {
+  items: ArticleDto[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
 
-  async execute(page: number, limit: number): Promise<ArticleDto[]> {
-    const article = await this.articleRepository.findByPagination(page, limit);
-    return article;
+export class PaginatedArticleUseCase {
+  constructor(private readonly articleRepository: ArticleRepository) {}
+
+  async execute(page: number, limit: number, search?: string): Promise<PaginatedArticlesDto> {
+    const [items, total] = await Promise.all([
+      this.articleRepository.findByPagination(page, limit, search),
+      this.articleRepository.countPublished(search),
+    ]);
+
+    const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+
+    return {
+      items,
+      page,
+      limit,
+      total,
+      totalPages,
+    };
   }
 }

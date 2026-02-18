@@ -49,8 +49,14 @@ describe('Articles API', () => {
 
       const response = await client.get(`${apiURL}/getPaginated`).query({ page: 1, limit: 10 }).send();
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
-      expect(response.body.length).toBeGreaterThan(0);
+      expect(Array.isArray(response.body.items)).toBe(true);
+      expect(response.body.items.length).toBeGreaterThan(0);
+      expect(response.body).toMatchObject({
+        page: 1,
+        limit: 10,
+      });
+      expect(response.body.total).toBeTypeOf('number');
+      expect(response.body.totalPages).toBeTypeOf('number');
     });
   });
 

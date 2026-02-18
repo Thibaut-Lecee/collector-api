@@ -53,6 +53,61 @@ jobs:
       - name: Test
         run: npm test -- --coverage
 
+      - name: Quality gate (coverage >= 70%)
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+
+          const threshold = 70;
+          const summaryPath = path.join('coverage', 'coverage-summary.json');
+          const lcovPath = path.join('coverage', 'lcov.info');
+
+          function fail(message) {
+            console.error(message);
+            process.exit(1);
+          }
+
+          let coveragePct;
+          let coverageSource;
+
+          if (fs.existsSync(summaryPath)) {
+            const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+            const rawPct = summary?.total?.lines?.pct;
+            const pct = typeof rawPct === 'number' ? rawPct : Number.parseFloat(rawPct);
+            if (!Number.isFinite(pct)) {
+              fail(`Unable to read total.lines.pct from ${summaryPath}`);
+            }
+            coveragePct = pct;
+            coverageSource = summaryPath;
+          } else if (fs.existsSync(lcovPath)) {
+            const lcov = fs.readFileSync(lcovPath, 'utf8');
+
+            let linesFound = 0;
+            let linesHit = 0;
+            for (const line of lcov.split(/\r?\n/)) {
+              if (line.startsWith('LF:')) linesFound += Number.parseInt(line.slice(3), 10);
+              if (line.startsWith('LH:')) linesHit += Number.parseInt(line.slice(3), 10);
+            }
+
+            if (!Number.isFinite(linesFound) || linesFound <= 0) {
+              fail(`Unable to compute line coverage from ${lcovPath} (LF total is ${linesFound})`);
+            }
+            coveragePct = (linesHit / linesFound) * 100;
+            coverageSource = lcovPath;
+          } else {
+            fail(`No coverage file found. Expected ${summaryPath} or ${lcovPath}.`);
+          }
+
+          const roundedPct = Math.round(coveragePct * 100) / 100;
+          console.log(`Detected total line coverage: ${roundedPct}% (from ${coverageSource})`);
+
+          if (coveragePct < threshold) {
+            fail(`Coverage quality gate failed: ${roundedPct}% < ${threshold}%`);
+          }
+          console.log(`Coverage quality gate passed: ${roundedPct}% >= ${threshold}%`);
+          NODE
+
       - name: Stop test containers
         if: always()
         run: docker compose down -v
@@ -69,34 +124,59 @@ jobs:
           docker build --target runner -t collector-api:ci .
           docker build --target migrate -t collector-api-migrate:ci .
 
-      - name: Trivy scan (collector-api)
+      - name: Trivy scan (collector-api) [CRITICAL - block]
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: collector-api:ci
           scan-type: image
           format: table
           vuln-type: os,library
-          severity: CRITICAL,HIGH
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Trivy scan (collector-api) [HIGH - warning]
+        if: always()
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: collector-api:ci
+          scan-type: image
+          format: table
+          vuln-type: os,library
+          severity: HIGH
           ignore-unfixed: true
           exit-code: "0"
 
-      - name: Trivy scan (collector-api-migrate)
+      - name: Trivy scan (collector-api-migrate) [CRITICAL - block]
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: collector-api-migrate:ci
           scan-type: image
           format: table
           vuln-type: os,library
-          severity: CRITICAL,HIGH
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Trivy scan (collector-api-migrate) [HIGH - warning]
+        if: always()
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: collector-api-migrate:ci
+          scan-type: image
+          format: table
+          vuln-type: os,library
+          severity: HIGH
           ignore-unfixed: true
           exit-code: "0"
 
-      - name: Deploy (docker compose)
+      - name: Smoke Test (docker compose)
         env:
           DATABASE_URL: ${{ env.DATABASE_URL_DOCKER }}
           API_IMAGE: collector-api:ci
           MIGRATE_IMAGE: collector-api-migrate:ci
         run: |
+          echo "Validation runtime CI via docker-compose, pas un déploiement production"
           docker compose -f docker-compose.deploy.yml up -d db
           docker compose -f docker-compose.deploy.yml run --rm migrate
           docker compose -f docker-compose.deploy.yml up -d api
