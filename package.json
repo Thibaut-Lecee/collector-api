@@ -15,8 +15,7 @@
     "format": "biome format --write .",
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
-    "test:integration": "vitest run --project integration",
-    "prepare": "lefthook install"
+    "test:integration": "vitest run --project integration"
   },
   "dependencies": {
     "@fastify/cors": "^11.2.0",
