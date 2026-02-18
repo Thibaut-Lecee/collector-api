@@ -8,6 +8,9 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     env:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -169,6 +172,66 @@ jobs:
           severity: HIGH
           ignore-unfixed: true
           exit-code: "0"
+
+      - name: Prepare GHCR tags
+        id: ghcr
+        if: github.event_name == 'push' && success()
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          owner='${{ github.repository_owner }}'
+          repo="${GITHUB_REPOSITORY#*/}"
+
+          owner="${owner,,}"
+          repo="${repo,,}"
+
+          api_image="ghcr.io/${owner}/${repo}-api"
+          migrate_image="ghcr.io/${owner}/${repo}-api-migrate"
+
+          echo "api_sha_tag=${api_image}:${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          echo "migrate_sha_tag=${migrate_image}:${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "api_latest_tag=${api_image}:latest" >> "$GITHUB_OUTPUT"
+            echo "migrate_latest_tag=${migrate_image}:latest" >> "$GITHUB_OUTPUT"
+          else
+            echo "api_latest_tag=" >> "$GITHUB_OUTPUT"
+            echo "migrate_latest_tag=" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "API image: ${api_image}"
+          echo "Migrate image: ${migrate_image}"
+
+      - name: Login to GHCR
+        if: github.event_name == 'push' && success()
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Push images to GHCR
+        if: github.event_name == 'push' && success()
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          docker tag collector-api:ci "${{ steps.ghcr.outputs.api_sha_tag }}"
+          docker push "${{ steps.ghcr.outputs.api_sha_tag }}"
+
+          docker tag collector-api-migrate:ci "${{ steps.ghcr.outputs.migrate_sha_tag }}"
+          docker push "${{ steps.ghcr.outputs.migrate_sha_tag }}"
+
+          if [[ -n "${{ steps.ghcr.outputs.api_latest_tag }}" ]]; then
+            docker tag collector-api:ci "${{ steps.ghcr.outputs.api_latest_tag }}"
+            docker push "${{ steps.ghcr.outputs.api_latest_tag }}"
+          fi
+
+          if [[ -n "${{ steps.ghcr.outputs.migrate_latest_tag }}" ]]; then
+            docker tag collector-api-migrate:ci "${{ steps.ghcr.outputs.migrate_latest_tag }}"
+            docker push "${{ steps.ghcr.outputs.migrate_latest_tag }}"
+          fi
 
       - name: Smoke Test (docker compose)
         env:
