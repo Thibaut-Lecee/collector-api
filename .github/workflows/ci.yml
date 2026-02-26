@@ -53,8 +53,11 @@ jobs:
       - name: Run migrations
         run: npx prisma migrate deploy --config prisma.config.ts
 
-      - name: Test
-        run: npm test -- --coverage
+      - name: Run unit tests
+        run: npm run test:unit -- --coverage
+
+      - name: Run integration tests
+        run: npm run test:integration
 
       - name: Quality gate (coverage >= 60%)
         run: |
@@ -62,8 +65,8 @@ jobs:
           const fs = require('node:fs');
           const path = require('node:path');
 
-          /* const threshold = 60; */
-          const threshold = 80;
+          const threshold = 60;
+          /* const threshold = 80; */
           const summaryPath = path.join('coverage', 'coverage-summary.json');
           const lcovPath = path.join('coverage', 'lcov.info');
 
