@@ -53,11 +53,8 @@ jobs:
       - name: Run migrations
         run: npx prisma migrate deploy --config prisma.config.ts
 
-      - name: Run unit tests
-        run: npm run test:unit -- --coverage
-
-      - name: Run integration tests
-        run: npm run test:integration
+      - name: Test
+        run: npm test -- --coverage
 
       - name: Quality gate (coverage >= 60%)
         run: |
