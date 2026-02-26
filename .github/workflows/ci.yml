@@ -63,7 +63,7 @@ jobs:
           const path = require('node:path');
 
           /* const threshold = 60; */
-          const treshold = 80;
+          const threshold = 80;
           const summaryPath = path.join('coverage', 'coverage-summary.json');
           const lcovPath = path.join('coverage', 'lcov.info');
 
