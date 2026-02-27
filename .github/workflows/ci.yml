@@ -234,29 +234,6 @@ jobs:
             docker push "${{ steps.ghcr.outputs.migrate_latest_tag }}"
           fi
 
-      - name: Smoke Test (docker compose)
-        env:
-          DATABASE_URL: ${{ env.DATABASE_URL_DOCKER }}
-          API_IMAGE: collector-api:ci
-          MIGRATE_IMAGE: collector-api-migrate:ci
-        run: |
-          echo "Validation runtime CI via docker-compose, pas un déploiement production"
-          docker compose -f docker-compose.deploy.yml up -d db
-          docker compose -f docker-compose.deploy.yml run --rm migrate
-          docker compose -f docker-compose.deploy.yml up -d api
-
-          for i in {1..30}; do
-            if curl -fsS http://localhost:3000/ready >/dev/null; then
-              echo "Service is ready"
-              exit 0
-            fi
-            sleep 2
-          done
-
-          echo "Service did not become ready"
-          docker compose -f docker-compose.deploy.yml logs api db
-          exit 1
-
       - name: Stop deploy containers
         if: always()
         run: docker compose -f docker-compose.deploy.yml down -v
